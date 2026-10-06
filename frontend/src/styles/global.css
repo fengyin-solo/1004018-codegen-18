@@ -35,3 +35,32 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .error-text { color: #b42318; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .legend-item { background: #eef2f7; border-radius: 999px; padding: 2px 10px; }
+
+/* 校准排程、暂停待办等内嵌面板 */
+.panel { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin: 16px 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.panel-head h3 { margin: 0; font-size: 15px; }
+.panel-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.panel-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.group-block { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; background: #fbfcfe; }
+.group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; font-size: 13px; }
+.group-check { display: flex; align-items: center; gap: 6px; }
+.col-check { width: 44px; }
+.data-table.compact th, .data-table.compact td { padding: 6px 8px; font-size: 12px; }
+.input-mini { width: 86px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+.input-date { padding: 3px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+input[type="number"]:disabled { background: #f1f5f9; color: var(--muted); }
+.muted-text { color: var(--muted); font-size: 12px; }
+.warn-text { color: #b54708; font-size: 12px; }
+.row-failed { background: #fff7ed; }
+.todo-panel { border-color: #fdba74; }
+
+.banner { border-radius: 6px; padding: 8px 10px; font-size: 12px; margin-bottom: 10px; }
+.banner.warn { background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; }
+
+.tag { display: inline-block; border-radius: 999px; padding: 1px 10px; font-size: 12px; white-space: nowrap; }
+.tag.info { background: #e0ecff; color: #1d4ed8; }
+.tag.danger { background: #fee4e2; color: #b42318; }
+.tag.warn { background: #fef0c7; color: #b54708; }
+.tag.success { background: #dcfae6; color: #027a48; }
+.tag.muted { background: #eef2f7; color: var(--muted); }

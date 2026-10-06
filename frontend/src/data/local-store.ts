@@ -20,6 +20,7 @@ function readStorage(): Record<string, EntryRow[]> {
   }
   try {
     const parsed = JSON.parse(raw) as Record<string, EntryRow[]>
+    // fallback 兜底：浏览器里已有的数据保留改动，新版本多出的数据集（如校准排程）也能补上初始空表。
     return { ...fallback, ...parsed }
   } catch {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback))
