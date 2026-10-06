@@ -1,5 +1,5 @@
 import { MODULE_BY_KEY } from '@/data/modules'
-import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
+import { allRows, listRows, listSchedules, resetRows, saveRows } from '@/data/local-store'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
@@ -101,5 +101,23 @@ export function loadOverview(): OverviewResult {
     { label: '待处理', value: modules.reduce((sum, item) => sum + item.pending, 0) },
     { label: '异常量', value: modules.reduce((sum, item) => sum + item.abnormal, 0) },
   ]
-  return { cards, modules }
+
+  const schedules = listSchedules()
+  const validSchedules = schedules
+    .filter((row) => row.status === '有效')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  const calibration = {
+    valid: validSchedules.length,
+    pendingSupplement: schedules.filter((row) => row.status === '待补').length,
+    failed: schedules.filter((row) => row.status === '失败').length,
+    upcoming: validSchedules.slice(0, 8).map((row) => ({
+      deviceId: row.deviceId,
+      deviceCode: row.deviceCode,
+      deviceType: row.deviceType,
+      installLocation: row.installLocation,
+      startDate: row.startDate,
+      batchId: row.batchId,
+    })),
+  }
+  return { cards, modules, calibration }
 }

@@ -35,4 +35,17 @@ export type ActionResult = {
 export type OverviewResult = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
+  calibration: {
+    valid: number
+    pendingSupplement: number
+    failed: number
+    upcoming: {
+      deviceId: number
+      deviceCode: string
+      deviceType: string
+      installLocation: string
+      startDate: string
+      batchId: string
+    }[]
+  }
 }

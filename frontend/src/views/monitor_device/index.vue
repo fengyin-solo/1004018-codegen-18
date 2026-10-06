@@ -3,10 +3,11 @@
     <header class="page-head">
       <div>
         <h2>监测设备管理</h2>
-        <p class="page-desc">维护监测设备，围绕设备编号、设备类型、安装位置、监测参数做登记、筛选与状态流转。</p>
+        <p class="page-desc">维护监测设备，围绕设备编号、设备类型、安装位置、监测参数做登记、筛选与状态流转，并支持按组批量安排校准排程。</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" type="button" @click="openCreate">登记监测设备</button>
+        <button class="btn primary" type="button" @click="wizardOpen = true">安排校准排程</button>
+        <button class="btn" type="button" @click="openCreate">登记监测设备</button>
         <button class="btn" type="button" @click="exportRows">导出监测设备清单</button>
       </div>
     </header>
@@ -43,8 +44,11 @@
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="String(row.id)">
-          <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
-          <td>{{ row.status }}</td>
+          <td v-for="column in columns" :key="column">{{ row[column] || '—' }}</td>
+          <td>
+            {{ row.status }}
+            <span v-if="hasValidSchedule(Number(row.id))" class="schedule-flag">已排校准</span>
+          </td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -63,10 +67,14 @@
       </tbody>
     </table>
 
+    <ScheduleList ref="scheduleListRef" @changed="reload" />
+
     <footer class="page-foot">
       <span>共 {{ total }} 条监测设备记录</span>
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
+
+    <ScheduleWizard :open="wizardOpen" @close="wizardOpen = false" @submitted="onScheduled" />
   </section>
 </template>
 
@@ -79,19 +87,44 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
+import { listAllSchedules } from '@/api/calibration-service'
 import type { EntryRow } from '@/data/types'
+import ScheduleWizard from './ScheduleWizard.vue'
+import ScheduleList from './ScheduleList.vue'
 
 const meta = moduleMeta('monitor_device')
 const columns = ["设备编号", "设备类型", "安装位置", "监测参数", "安装日期", "校准周期", "最近校准", "设备状态"]
 const actions = ["确认安装", "申请校准", "上报故障"]
 const statuses = ["待安装", "运行中", "待校准", "已故障"]
-const stats = [{"label": "运行中设备", "value": 0}, {"label": "待校准设备", "value": 0}, {"label": "故障设备", "value": 0}]
 
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const wizardOpen = ref(false)
+const scheduleListRef = ref<InstanceType<typeof ScheduleList> | null>(null)
+
+const scheduledDeviceIds = ref<Set<number>>(new Set())
+
+function refreshScheduleFlags() {
+  scheduledDeviceIds.value = new Set(
+    listAllSchedules()
+      .filter((row) => row.status === '有效')
+      .map((row) => row.deviceId),
+  )
+}
+
+function hasValidSchedule(deviceId: number): boolean {
+  return scheduledDeviceIds.value.has(deviceId)
+}
+
+const stats = computed(() => [
+  { label: '运行中设备', value: rows.value.filter((row) => String(row.status) === '运行中').length },
+  { label: '待校准设备', value: rows.value.filter((row) => String(row.status) === '待校准').length },
+  { label: '故障设备', value: rows.value.filter((row) => String(row.status) === '已故障').length },
+])
+
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
@@ -122,12 +155,18 @@ function runAction(action: string, row: EntryRow) {
   reload()
 }
 
+function onScheduled() {
+  reload()
+  scheduleListRef.value?.reload()
+}
+
 function reload() {
   errorMessage.value = ''
   try {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    refreshScheduleFlags()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '监测设备列表读取失败'
   }
@@ -135,3 +174,14 @@ function reload() {
 
 onMounted(reload)
 </script>
+
+<style scoped>
+.schedule-flag {
+  margin-left: 6px;
+  background: #e7f6ec;
+  color: #157347;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+</style>
